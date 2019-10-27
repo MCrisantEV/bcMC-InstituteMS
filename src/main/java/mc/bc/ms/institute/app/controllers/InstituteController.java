@@ -3,6 +3,7 @@ package mc.bc.ms.institute.app.controllers;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,6 +44,12 @@ public class InstituteController {
 	public Mono<Map<String, Object>> editInstitute(@PathVariable String id, @RequestBody Institute institute) {
 
 		return intServ.updateInstitute(id, institute);
+	}
+	
+	@DeleteMapping("/{id}")
+	public Mono<Map<String, Object>> removeInstitute(@PathVariable String id) {
+
+		return intServ.deleteInstitute(id);
 	}
 
 }

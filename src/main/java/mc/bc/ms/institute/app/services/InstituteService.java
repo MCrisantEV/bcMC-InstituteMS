@@ -16,4 +16,6 @@ public interface InstituteService {
 	
 	public Mono<Map<String, Object>> updateInstitute(String id, Institute institute);
 	
+	public Mono<Map<String, Object>> deleteInstitute(String id);
+	
 }

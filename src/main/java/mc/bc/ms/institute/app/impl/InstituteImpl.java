@@ -111,4 +111,21 @@ public class InstituteImpl implements InstituteService {
 		});
 	}
 
+	@Override
+	public Mono<Map<String, Object>> deleteInstitute(String id) {
+		Map<String, Object> respuesta = new HashMap<String, Object>();
+
+		return intRep.findById(id).map(instDb -> {
+			intRep.delete(instDb).subscribe();
+			respuesta.put("Mensaje: ", instDb.getInstitute() + " se eliminó con éxito");
+			return respuesta;
+		}).switchIfEmpty(Mono.just("").map(er -> {
+			respuesta.put("Mensaje: ", "El Instituto no se pudo elimininar");
+			respuesta.put("Status", HttpStatus.BAD_REQUEST.value());
+			respuesta.put("Error", "Problemas con ID");
+			return respuesta;
+		}));
+
+	}
+
 }
