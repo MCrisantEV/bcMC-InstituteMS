@@ -13,5 +13,7 @@ public interface InstituteService {
 	public Flux<Institute> finadAllInstitute();
 	
 	public Mono<Institute> findByNameInstitute(String name);
-
+	
+	public Mono<Map<String, Object>> updateInstitute(String id, Institute institute);
+	
 }

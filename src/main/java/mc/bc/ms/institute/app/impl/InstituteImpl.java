@@ -73,4 +73,42 @@ public class InstituteImpl implements InstituteService {
 		return intRep.findByInstitute(name);
 	}
 
+	@Override
+	public Mono<Map<String, Object>> updateInstitute(String id, Institute institute) {
+		Map<String, Object> respuesta = new HashMap<String, Object>();
+		Mono<Institute> monoInst = Mono.just(institute);
+
+		return monoInst.flatMap(ins -> {
+
+			Errors errors = new BeanPropertyBindingResult(ins, Institute.class.getName());
+			validator.validate(ins, errors);
+
+			if (errors.hasErrors()) {
+				return Flux.fromIterable(errors.getFieldErrors()).map(err -> {
+					String[] matriz = { err.getField(), err.getDefaultMessage() };
+					return matriz;
+				}).collectList().flatMap(l -> {
+					respuesta.put("status", HttpStatus.BAD_REQUEST.value());
+					respuesta.put("Mensaje", "Error, revise los datos");
+					l.forEach(m -> {
+						for (int i = 0; i < m.length; i++) {
+							respuesta.put(m[0], m[i]);
+						}
+					});
+					return Mono.just(respuesta);
+				});
+			} else {
+				return intRep.findById(id).map(instDb -> {
+					ins.setId(id);
+					intRep.save(ins).subscribe();
+					respuesta.put("Mensaje: ", ins.getInstitute() + " se actualizo con éxito");
+					return respuesta;
+				}).switchIfEmpty(Mono.just(institute).map(er -> {
+					respuesta.put("Error: ", er.getInstitute() + " No se puede actualizar");
+					return respuesta;
+				}));
+			}
+		});
+	}
+
 }
