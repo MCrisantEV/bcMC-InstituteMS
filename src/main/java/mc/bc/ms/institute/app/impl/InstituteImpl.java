@@ -63,4 +63,14 @@ public class InstituteImpl implements InstituteService {
 
 	}
 
+	@Override
+	public Flux<Institute> finadAllInstitute() {
+		return intRep.findAll();
+	}
+
+	@Override
+	public Mono<Institute> findByNameInstitute(String name) {
+		return intRep.findByInstitute(name);
+	}
+
 }

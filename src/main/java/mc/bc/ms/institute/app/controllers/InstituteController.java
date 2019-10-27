@@ -3,6 +3,8 @@ package mc.bc.ms.institute.app.controllers;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import mc.bc.ms.institute.app.models.Institute;
 import mc.bc.ms.institute.app.services.InstituteService;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -23,6 +26,16 @@ public class InstituteController {
 	public Mono<Map<String, Object>> createInstitute(@RequestBody Institute institute) {
 
 		return intServ.saveInstitute(institute);
+	}
+	
+	@GetMapping
+	public Flux<Institute> listInstitute(){
+		return intServ.finadAllInstitute();
+	}
+	
+	@GetMapping("/{name}")
+	public Mono<Institute> findNameInstitute(@PathVariable String name){
+		return intServ.findByNameInstitute(name);
 	}
 
 }
