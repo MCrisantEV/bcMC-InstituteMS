@@ -1,12 +1,18 @@
 package mc.bc.ms.institute.app.models;
 
+import javax.validation.constraints.NotBlank;
+
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
 @Data
+@Document(collection = "intitutes")
 public class Institute {
 	@Id
 	private String id;
-	private String intitute;
+
+	@NotBlank
+	private String institute;
 }
