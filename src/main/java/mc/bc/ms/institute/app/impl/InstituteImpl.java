@@ -1,5 +1,7 @@
 package mc.bc.ms.institute.app.impl;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import mc.bc.ms.institute.app.models.Institute;
 import mc.bc.ms.institute.app.repositories.InstituteRepository;
@@ -24,7 +27,10 @@ public class InstituteImpl implements InstituteService {
 
 	@Autowired
 	private Validator validator;
-
+	
+	@Autowired
+	private WebClient client;
+	
 	@Override
 	public Mono<Map<String, Object>> saveInstitute(Institute institute) {
 		Map<String, Object> respuesta = new HashMap<String, Object>();
@@ -51,11 +57,11 @@ public class InstituteImpl implements InstituteService {
 				});
 			} else {
 				return intRep.findByInstitute(ins.getInstitute()).map(i -> {
-					respuesta.put("Error: ", ins.getInstitute() + " Ya esta registrado");
+					respuesta.put("Error", ins.getInstitute() + " Ya esta registrado");
 					return respuesta;
 				}).switchIfEmpty(intRep.save(institute).map(instDb -> {
-					respuesta.put("Instituto: ", instDb.getInstitute());
-					respuesta.put("Mensaje: ", "Instituto creado con éxito");
+					respuesta.put("Instituto", instDb.getInstitute());
+					respuesta.put("Mensaje", "Instituto creado con éxito");
 					return respuesta;
 				}));
 			}
@@ -101,10 +107,10 @@ public class InstituteImpl implements InstituteService {
 				return intRep.findById(id).map(instDb -> {
 					ins.setId(id);
 					intRep.save(ins).subscribe();
-					respuesta.put("Mensaje: ", ins.getInstitute() + " se actualizo con éxito");
+					respuesta.put("Mensaje", ins.getInstitute() + " se actualizo con éxito");
 					return respuesta;
 				}).switchIfEmpty(Mono.just(institute).map(er -> {
-					respuesta.put("Error: ", er.getInstitute() + " No se puede actualizar");
+					respuesta.put("Error", er.getInstitute() + " No se puede actualizar");
 					return respuesta;
 				}));
 			}
@@ -114,13 +120,27 @@ public class InstituteImpl implements InstituteService {
 	@Override
 	public Mono<Map<String, Object>> deleteInstitute(String id) {
 		Map<String, Object> respuesta = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("id", id);
 
-		return intRep.findById(id).map(instDb -> {
-			intRep.delete(instDb).subscribe();
-			respuesta.put("Mensaje: ", instDb.getInstitute() + " se eliminó con éxito");
-			return respuesta;
+		return intRep.findById(id).flatMap(instDb -> {
+			
+			Mono<Long> count =  client.get().uri("/institute/{id}", params)
+			.accept(APPLICATION_JSON_UTF8)
+			.retrieve().bodyToFlux(Institute.class).count();
+			
+			return count.map(c -> {
+				if(c == 0) {
+					intRep.delete(instDb).subscribe();
+					respuesta.put("Mensaje", instDb.getInstitute() + " se eliminó con éxito");
+					return respuesta;
+				}else {
+					respuesta.put("Error", "El Instituto no se puede eliminar, porque esta siendo usado por otra entidad");
+					return respuesta;
+				}
+			});
 		}).switchIfEmpty(Mono.just("").map(er -> {
-			respuesta.put("Mensaje: ", "El Instituto no se pudo elimininar");
+			respuesta.put("Mensaje", "El Instituto no se pudo elimininar");
 			respuesta.put("Status", HttpStatus.BAD_REQUEST.value());
 			respuesta.put("Error", "Problemas con ID");
 			return respuesta;
